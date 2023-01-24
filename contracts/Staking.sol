@@ -9,7 +9,7 @@ contract Staking is ReentrancyGuard {
     
     uint256 public constant Reward= 5;
     uint256 public totalSupply;
-    uint256 public staingTime;
+    uint256 public stakingTime;
     //mapping from address to staked amount
     mapping(address => uint256) public staked_balance;
     // mapping from address to the possible rewards
@@ -38,14 +38,14 @@ contract Staking is ReentrancyGuard {
             return 0;
         } else {
             return
-                (((block.timestamp - staingTime) * Reward* 1e18) / totalSupply);
+                (((block.timestamp - stakingTime) * Reward* 1e18) / totalSupply);
         }
     }
 
     function stake(uint256 amount) external {
         require(staked_balance[msg.sender]==0, "Already Staked");
         totalSupply += amount;
-		staingTime = block.timestamp;
+		stakingTime = block.timestamp;
 		staked_balance[msg.sender] += amount;
 		rewards[msg.sender] = earned(msg.sender);
 		uint currentBalance = staked_balance[msg.sender];
@@ -55,7 +55,7 @@ contract Staking is ReentrancyGuard {
     }
 
     function withdraw(uint256 amount) external {
-		require(staingTime + 7 days < block.timestamp, "You can't withdraw Now");
+		require(stakingTime + 7 days < block.timestamp, "You can't withdraw Now");
 		require(address(this).balance > amount, "Contract has Less Tokens");
 		require(amount == staked_balance[msg.sender], "You have unsuffient Tokens");
         staked_balance[msg.sender] -= amount;
