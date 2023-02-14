@@ -19,7 +19,7 @@ contract Staking {
             stakingToken.balanceOf(msg.sender) >= _amount,
             "Insufficient Tokens"
         );
-        stakingToken.transferFrom(msg.sender, address(this), _amount);
+        stakingToken.transferFrom(msg.sender,address(this), _amount);
         if (staked[msg.sender] > 0) {
             claim();
         }
@@ -39,11 +39,7 @@ contract Staking {
         );
         claim();
         staked[msg.sender] -= _amount;
-        stakingToken.transferFrom(
-            0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
-            msg.sender,
-            _amount
-        );
+        stakingToken.transferFrom(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2, msg.sender, _amount);
     }
 
     function claim() public {
@@ -62,27 +58,15 @@ contract Staking {
             ) > rewards,
             "Low Allowance"
         );
-        rewardToken.transferFrom(
-            0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
-            msg.sender,
-            rewards
-        );
+        rewardToken.transferFrom(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2, msg.sender, rewards);
         stakingTime[msg.sender] = block.timestamp;
     }
 
-    function RewardBalance() external view returns (uint256) {
-        return
-            rewardToken.allowance(
-                0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
-                address(this)
-            );
+    function RewardBalance() external view returns(uint256){
+        return rewardToken.allowance(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,address(this));
     }
 
-    function StakeBalance() external view returns (uint256) {
-        return
-            stakingToken.allowance(
-                0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
-                address(this)
-            );
+    function StakeBalance() external view returns(uint256){
+        return stakingToken.allowance(0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,address(this));
     }
 }
