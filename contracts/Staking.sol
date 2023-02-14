@@ -45,12 +45,12 @@ contract Staking {
     function claim() public {
         require(staked[msg.sender] > 0, "insufficient tokens");
         require(
-            block.timestamp > stakingTime[msg.sender] + 5,
+            block.timestamp > stakingTime[msg.sender] + 604800,
             "can't claim now"
         );
         uint256 amountStaked = staked[msg.sender];
         uint256 secondsStaked = block.timestamp - stakingTime[msg.sender];
-        uint256 rewards = amountStaked * (secondsStaked / 3.154e7);
+        uint256 rewards = amountStaked * (secondsStaked/2);
         require(
             rewardToken.allowance(
                 0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
