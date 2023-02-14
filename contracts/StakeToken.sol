@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract StakeToken is ERC20, ERC20Burnable, Ownable {
-    constructor() ERC20("StakeToke", "ST") {
+    constructor() ERC20("StakeToken", "ST") {
         _mint(msg.sender, 10000 * 10 ** decimals());
     }
 
