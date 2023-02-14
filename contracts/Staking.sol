@@ -5,17 +5,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 contract Staking {
     IERC20 public stakingToken;
     IERC20 public rewardToken;
+    mapping(address => uint256) public staked;
+    mapping(address => uint256) private stakingTime;
 
-    uint256 public constant Reward = 5;
-    uint256 public totalSupply;
-    uint256 public staingTime;
-    //mapping from address to staked amount
-    mapping(address => uint256) public staked_balance;
-    // mapping from address to the possible rewards
-    mapping(address => uint256) public rewards;
-
-    constructor(address _stakingToken, address _rewardToken) {
-        stakingToken = IERC20(_stakingToken);
+    constructor(address _stakeToken, address _rewardToken) {
+        stakingToken = IERC20(_stakeToken);
         rewardToken = IERC20(_rewardToken);
     }
 
@@ -33,45 +27,55 @@ contract Staking {
         staked[msg.sender] += _amount;
     }
 
-    function CalculateRewardPerToken() public view returns (uint256) {
-        if (staked_balance[msg.sender] == 0) {
-            return 0;
-        } else {
-            return (((block.timestamp - staingTime) * Reward * 1e18) /
-                totalSupply);
-        }
-    }
-
-    function stake(uint256 amount) external {
-        require(staked_balance[msg.sender] == 0, "Already Staked");
-        totalSupply += amount;
-        staingTime = block.timestamp;
-        staked_balance[msg.sender] += amount;
-        rewards[msg.sender] = earned(msg.sender);
-        uint256 currentBalance = staked_balance[msg.sender];
-        bool success = stakingToken.transferFrom(
+    function unStake(uint256 _amount) external {
+        require(staked[msg.sender] >= _amount, "insuffient Tokens");
+        require(_amount > 0, " token amount is invalid");
+        require(
+            stakingToken.allowance(
+                0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
+                address(this)
+            ) > _amount,
+            "Low Allowance"
+        );
+        claim();
+        staked[msg.sender] -= _amount;
+        stakingToken.transferFrom(
+            0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
             msg.sender,
-            address(this),
-            currentBalance
+            _amount
         );
-        require(success, "Transfer Failed");
     }
 
-    function withdraw(uint256 amount) external {
+    function claim() public {
+        require(staked[msg.sender] > 0, "insufficient tokens");
         require(
-            staingTime + 7 days < block.timestamp,
-            "You can't withdraw Now"
+            block.timestamp > stakingTime[msg.sender] + 5,
+            "can't claim now"
         );
-        require(address(this).balance > amount, "Contract has Less Tokens");
+        uint256 amountStaked = staked[msg.sender];
+        uint256 secondsStaked = block.timestamp - stakingTime[msg.sender];
+        uint256 rewards = amountStaked * (secondsStaked / 3.154e7);
         require(
-            amount == staked_balance[msg.sender],
-            "You have unsuffient Tokens"
+            rewardToken.allowance(
+                0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
+                address(this)
+            ) > rewards,
+            "Low Allowance"
         );
-        staked_balance[msg.sender] -= amount;
-        totalSupply -= amount;
-        claimReward();
-        bool success = stakingToken.transfer(msg.sender, amount);
-        require(success, "Withdraw Failed");
+        rewardToken.transferFrom(
+            0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
+            msg.sender,
+            rewards
+        );
+        stakingTime[msg.sender] = block.timestamp;
+    }
+
+    function RewardBalance() external view returns (uint256) {
+        return
+            rewardToken.allowance(
+                0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2,
+                address(this)
+            );
     }
 
     function StakeBalance() external view returns (uint256) {
